@@ -1,0 +1,68 @@
+version: '1.0'
+
+services:
+  nginx:
+    image: nginx:alpine
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/conf.d/default.conf
+      - ./frontend/src:/usr/share/nginx/html
+    depends_on:
+      - frontend
+    networks:
+      - marketing-network
+
+  frontend:
+    build: ./frontend
+    ports:
+      - "3000:80"
+    networks:
+      - marketing-network
+
+  menu:
+    build: ./menu-service
+    ports:
+      - "5001:5000"
+    networks:
+      - marketing-network
+
+  reservations:
+    build: ./special-order
+    ports:
+      - "5002:5000"
+    environment:
+      - FORMSPREE_URL=https://formspree.io/f/xwpqganp
+    networks:
+      - marketing-network
+
+  order:
+    build: ./order-service
+    ports:
+      - "5003:5000"
+    environment:
+      - FORMSPREE_URL=https://formspree.io/f/xwpqganp
+    networks:
+      - marketing-network
+
+#   db:
+#     image: postgres:13
+#     environment:
+#       - POSTGRES_DB=marketing
+#       - POSTGRES_USER=admin
+#       - POSTGRES_PASSWORD=password
+#     volumes:
+#       - ./db-service/init.sql:/docker-entrypoint-initdb.d/init.sql
+#       - postgres-data:/var/lib/postgresql/data
+#     ports:
+#       - "5432:5432"
+#     networks:
+#       - marketing-network
+
+# volumes:
+#   postgres-data:
+
+networks:
+  marketing-network:
+    driver: bridge
+
